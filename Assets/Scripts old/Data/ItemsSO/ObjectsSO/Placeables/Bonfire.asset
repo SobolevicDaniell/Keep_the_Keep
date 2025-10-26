@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a191f7a3f308fc641be68d758c3253bc, type: 3}
+  m_Name: Bonfire
+  m_EditorClassIdentifier: Assembly-CSharp::Game.PlaceableItemSO
+  Id: Bonfire
+  Prefab: {fileID: 9036390100590524510, guid: 16e050e42fc29814c88b9ad2ee9ff744, type: 3}
+  Icon: {fileID: 21300000, guid: 5b40fc7524848e742bca13812f62d895, type: 3}
+  MaxStack: 3
+  priority: 1
+  PlaceablePrefab: {fileID: 7103411398078578219, guid: 3fa9caa6313b3324b89738d29597815c, type: 3}
+  PlaceDistance: 4

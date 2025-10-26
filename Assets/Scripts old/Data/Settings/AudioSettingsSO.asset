@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df2a27317d3443049a68cb2acc2c56b8, type: 3}
+  m_Name: AudioSettingsSO
+  m_EditorClassIdentifier: Assembly-CSharp::Game.AudioSettingsSO
+  audioMixerGroup: {fileID: 24300002, guid: b62d6d5bfdb9d2046bb120f273b6f379, type: 2}
+  minMainVolumeDb: -80
+  maxMainVolumeDb: 20
+  minVFSVolumeDb: -80
+  maxVFSVolumeDb: 20
+  minMusicVolumeDb: -80
+  maxMusicVolumeDb: 20

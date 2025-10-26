@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41e8f79a9557b8948814c7757c5ad38f, type: 3}
+  m_Name: AK_Gun
+  m_EditorClassIdentifier: Assembly-CSharp::Game.WeaponSO
+  Id: AK_Gun
+  Prefab: {fileID: 1197729190661013473, guid: 5fd334c23cfc63646830557fb8b7fd3c, type: 3}
+  Icon: {fileID: 21300000, guid: 88c9fdae4e5d5a548a9c412e6e5f9de0, type: 3}
+  MaxStack: 1
+  priority: 1
+  HandModelNetwork: {fileID: 8456801128687615435, guid: ce611743d0654fd4580ed8c14fb78b8a, type: 3}
+  maxAmmo: 30
+  isAutomatic: 1
+  fireRate: 15
+  fireRateSingle: 10
+  bulletPrefab: {fileID: 6867856357713228749, guid: 62d89cc04b19b7348bd19b274080c461, type: 3}
+  bulletSpeed: 50
+  bulletDamage: 10
+  bulletMass: 0.01
+  spread: 1
+  ammoResource: {fileID: 11400000, guid: 7f2f10d6a7959b243be7144945487b88, type: 2}
