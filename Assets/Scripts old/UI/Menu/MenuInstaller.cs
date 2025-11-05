@@ -14,7 +14,7 @@ namespace Game.Network
             Container.Bind<LaunchRequestStore>().FromInstance(store).AsSingle();
 
             Container.Bind<MainMenuUIStateController>().FromComponentInHierarchy().AsSingle();
-            Container.Bind<SessionStarting>().FromComponentInHierarchy().AsSingle();
+            // Container.Bind<SessionStarting>().FromComponentInHierarchy().AsSingle();
         }
     }
 }

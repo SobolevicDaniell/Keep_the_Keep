@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Fusion;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,9 +8,8 @@ using Zenject;
 
 namespace Game.UI
 {
-    public sealed class GameControllerToMenu : MonoBehaviour
+    public sealed class GameControllerExit : MonoBehaviour
     {
-        [SerializeField] private Button _exitToMenuButton;
         [SerializeField] private Button _quitGameButton;
         [SerializeField] private string _mainMenuSceneName = "MainMenu";
 
@@ -22,39 +20,12 @@ namespace Game.UI
 
         private void OnEnable()
         {
-            if (_exitToMenuButton) _exitToMenuButton.onClick.AddListener(OnExitToMenuClicked);
             if (_quitGameButton) _quitGameButton.onClick.AddListener(OnQuitGameClicked);
         }
 
         private void OnDisable()
         {
-            if (_exitToMenuButton) _exitToMenuButton.onClick.RemoveListener(OnExitToMenuClicked);
             if (_quitGameButton) _quitGameButton.onClick.RemoveListener(OnQuitGameClicked);
-        }
-
-        private async void OnExitToMenuClicked()
-        {
-            _ui?.SetPhase(UiPhase.Exit);
-            if (_busy) return;
-            _busy = true;
-            SetInteractable(false);
-            try
-            {
-                var runners = CollectRunners();
-                foreach (var r in runners)
-                    if (r != null && r.IsRunning)
-                        try { await r.Shutdown(); } catch { }
-
-                foreach (var r in runners)
-                    if (r != null) Destroy(r.gameObject);
-
-                SceneManager.LoadScene(_mainMenuSceneName, LoadSceneMode.Single);
-            }
-            finally
-            {
-                _busy = false;
-                SetInteractable(true);
-            }
         }
 
         private void OnQuitGameClicked()
@@ -68,7 +39,6 @@ namespace Game.UI
 
         private void SetInteractable(bool v)
         {
-            if (_exitToMenuButton) _exitToMenuButton.interactable = v;
             if (_quitGameButton) _quitGameButton.interactable = v;
         }
 
