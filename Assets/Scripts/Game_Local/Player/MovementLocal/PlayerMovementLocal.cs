@@ -1,99 +1,79 @@
 using UnityEngine;
-using Zenject;
+using UnityEngine.InputSystem;
 
 namespace Game.Local
 {
+    [DisallowMultipleComponent]
     [RequireComponent(typeof(CharacterController))]
     public sealed class PlayerMovementLocal : MonoBehaviour
     {
-        [SerializeField] private Transform _cameraRoot;
+        [SerializeField] private CharacterController _controller;
+        [SerializeField] private InputHandlerLocal _input;
         [SerializeField] private Transform _rotationRoot;
+        [SerializeField] private Transform _cameraRoot;
 
-        [Inject] private GameObject _player;
-        [Inject] private PlayerStatsSO _stats;
-        [Inject(Optional = true)] private InputHandlerLocal _input;
+        [Header("Movement")]
+        [SerializeField] private float walkSpeed = 4.5f;
+        [SerializeField] private float sprintSpeed = 7.0f;
+        [SerializeField] private float acceleration = 12f;
+        [SerializeField] private float airControl = 0.5f;
 
-        private CharacterController _controller;
-        private Vector3 _planarVelocity;
-        private float _verticalVelocity;
+        [Header("Jump/Gravity")]
+        [SerializeField] private float jumpHeight = 1.2f;
+        [SerializeField] private float gravity = -9.81f;
+
+        private Vector3 _velocity;
+        private float _currentSpeed;
 
         private void Awake()
         {
-            _controller = GetComponent<CharacterController>();
+            if (_controller == null) _controller = GetComponent<CharacterController>();
+            if (_input == null) _input = GetComponent<InputHandlerLocal>();
             if (_rotationRoot == null) _rotationRoot = transform;
-            _planarVelocity = Vector3.zero;
+            if (_cameraRoot == null)
+            {
+                var cam = GetComponentInChildren<Camera>();
+                if (cam != null) _cameraRoot = cam.transform;
+            }
             if (_input != null) _input.BindLocalAvatar(_rotationRoot, _cameraRoot);
         }
 
-        private void FixedUpdate()
+        private void Update()
         {
-            float dt = Time.fixedDeltaTime;
+            if (_input == null || _controller == null) return;
 
-            float yaw = _input != null ? _input.YawLocal : _rotationRoot.eulerAngles.y;
-            float pitch = _input != null ? _input.PitchLocal : 0f;
-
-            Quaternion rotY = Quaternion.Euler(0f, yaw, 0f);
-
-            Vector2 mv = _input != null ? _input.Movement : Vector2.zero;
-            if (mv.sqrMagnitude > 1f) mv.Normalize();
-
-            Vector3 desiredPlanar = (rotY * Vector3.forward) * mv.y + (rotY * Vector3.right) * mv.x;
-            desiredPlanar *= _stats.moveSpeed;
+            if (_rotationRoot != null) _rotationRoot.localEulerAngles = new Vector3(0f, _input.YawLocal, 0f);
+            if (_cameraRoot != null) _cameraRoot.localEulerAngles = new Vector3(_input.PitchLocal, 0f, 0f);
 
             bool grounded = _controller.isGrounded;
-            Vector3 groundNormal = Vector3.up;
-            if (grounded && TryGetGroundNormal(out var n)) groundNormal = n;
+            if (grounded && _velocity.y < 0f) _velocity.y = -2f;
 
-            if (grounded)
+            Vector2 mv = _input.Movement;
+            Vector3 wish = new Vector3(mv.x, 0f, mv.y);
+            wish = Vector3.ClampMagnitude(wish, 1f);
+
+            Transform basis = _rotationRoot != null ? _rotationRoot : transform;
+            Vector3 worldWish = basis.TransformDirection(wish);
+
+            bool sprint = Keyboard.current != null && (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed);
+            float targetSpeed = sprint ? sprintSpeed : walkSpeed;
+
+            float accel = grounded ? acceleration : acceleration * airControl;
+            _currentSpeed = Mathf.MoveTowards(_currentSpeed, targetSpeed * worldWish.magnitude, accel * Time.deltaTime);
+            Vector3 planar = worldWish.sqrMagnitude > 0f ? worldWish.normalized * _currentSpeed : Vector3.zero;
+
+            if (grounded && _input.JumpPressed)
             {
-                desiredPlanar = Vector3.ProjectOnPlane(desiredPlanar, groundNormal);
-                _planarVelocity = Vector3.MoveTowards(_planarVelocity, desiredPlanar, _stats.groundAcceleration * dt);
-                if (mv.sqrMagnitude < 1e-4f)
-                {
-                    float mag = _planarVelocity.magnitude;
-                    mag = Mathf.MoveTowards(mag, 0f, _stats.groundFriction * dt);
-                    _planarVelocity = mag > 0f ? _planarVelocity.normalized * mag : Vector3.zero;
-                }
-            }
-            else
-            {
-                Vector3 delta = desiredPlanar - _planarVelocity;
-                float maxDelta = _stats.airAcceleration * dt;
-                if (delta.sqrMagnitude > maxDelta * maxDelta) delta = delta.normalized * maxDelta;
-                _planarVelocity += delta;
-                _planarVelocity *= Mathf.Clamp01(1f - _stats.airDrag * dt);
+                _velocity.y = Mathf.Sqrt(-2f * gravity * jumpHeight);
             }
 
-            bool jump = _input != null && _input.JumpPressed;
-            if (grounded)
-            {
-                if (jump) _verticalVelocity = _stats.jumpImpulse;
-                else if (_verticalVelocity < 0f) _verticalVelocity = -2f;
-            }
+            _velocity.y += gravity * Time.deltaTime;
 
-            float gravity = -Mathf.Abs(_stats.gravity);
-            _verticalVelocity += gravity * dt;
+            Vector3 delta = (planar + new Vector3(0f, _velocity.y, 0f)) * Time.deltaTime;
+            _controller.Move(delta);
 
-            Vector3 velocity = _planarVelocity + Vector3.up * _verticalVelocity;
-            _controller.Move(velocity * dt);
-
-            if (_rotationRoot != null)
-                _rotationRoot.rotation = Quaternion.Euler(0f, yaw, 0f);
-
-            if (_cameraRoot != null)
-                _cameraRoot.localRotation = Quaternion.Euler(pitch, 0f, 0f);
-        }
-
-        private bool TryGetGroundNormal(out Vector3 normal)
-        {
-            Vector3 origin = transform.position + Vector3.up * 0.1f;
-            if (Physics.Raycast(origin, Vector3.down, out var hit, 1.2f, ~0, QueryTriggerInteraction.Ignore))
-            {
-                normal = hit.normal;
-                return true;
-            }
-            normal = Vector3.up;
-            return false;
+            if (grounded && worldWish.sqrMagnitude < 0.0001f)
+                _currentSpeed = Mathf.MoveTowards(_currentSpeed, 0f, accel * Time.deltaTime);
         }
     }
 }
